@@ -1,0 +1,2 @@
+cd ~/source/linux/linux-dev/
+git am -s ~/incoming/*.mbox

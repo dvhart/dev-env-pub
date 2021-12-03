@@ -1,0 +1,148 @@
+set realname="John Doe"
+
+# Local Maildir (offlineimap populated from company)
+set from="jdoe@example.com"
+set use_from="yes"
+set imap_idle=yes                       # Keep imap connection open when idle
+set folder=~/Mail/example               # Set this before using + to point
+                                        # to mail folders.
+set spoolfile="+INBOX"
+set record="+Sent"
+set postponed="+Drafts"
+
+set mail_check=60                       # Check all folders for new mail every N seconds.
+                                        # Don't reduce this value.
+set timeout=10                          # Scan current folder for new mail every N seconds. 
+
+set sendmail = "/usr/bin/msmtp"
+
+set sort=threads
+set sort_aux=last-date-received
+
+set alias_file= ~/.gitaliases.mutt
+set sort_alias= alias
+set reverse_alias=yes
+source $alias_file
+
+# Editor
+set edit_headers=yes
+set autoedit=yes
+
+# SMIME Support
+source ~/.smime/smime.rc
+
+## Normal colors
+# Note: colors can be: white, black, green, magenta, blue, cyan, yellow, red,
+# default or colorX where X is the ANSI number. Mutt uses the "Normal" color for
+# the named colors, and bright indicates bold face. So to get the lighter color,
+# say bright black, use color8, to get bold bright black, use brightcolor8
+color normal white default
+color message white default
+color hdrdefault white black
+color signature color8 default
+color attachment yellow default
+
+## Index colors
+## http://www.yz.kiev.ua/www/etc/muttrc.html
+#Many of Mutt's commands allow you to specify a pattern to match (limit, tag-pattern,
+#delete-pattern, etc.). There are several ways to select messages: 
+#
+#     ~A              all messages
+#     ~b EXPR         messages which contain EXPR in the message body
+#     ~B EXPR         messages which contain EXPR in the whole message
+#     ~c USER         messages carbon-copied to USER
+#     ~C EXPR         message is either to: or cc: EXPR
+#     ~D              deleted messages
+#     ~d [MIN]-[MAX]  messages with ``date-sent'' in a Date range
+#     ~E              expired messages
+#     ~e EXPR         message which contains EXPR in the ``Sender'' field
+#     ~F              flagged messages
+#     ~f USER         messages originating from USER
+#     ~g              PGP signed messages
+#     ~G              PGP encrypted messages
+#     ~h EXPR         messages which contain EXPR in the message header
+#     ~k              message contains PGP key material
+#     ~i ID           message which match ID in the ``Message-ID'' field
+#     ~L EXPR         message is either originated or received by EXPR
+#     ~l              message is addressed to a known mailing list
+#     ~m [MIN]-[MAX]  message in the range MIN to MAX *)
+#     ~n [MIN]-[MAX]  messages with a score in the range MIN to MAX *)
+#     ~N              new messages
+#     ~O              old messages
+#     ~p              message is addressed to you (consults $alternates)
+#     ~P              message is from you (consults $alternates)
+#     ~Q              messages which have been replied to
+#     ~R              read messages
+#     ~r [MIN]-[MAX]  messages with ``date-received'' in a Date range
+#     ~S              superseded messages
+#     ~s SUBJECT      messages having SUBJECT in the ``Subject'' field.
+#     ~T              tagged messages
+#     ~t USER         messages addressed to USER
+#     ~U              unread messages
+#     ~v              message is part of a collapsed thread.
+#     ~x EXPR         messages which contain EXPR in the `References' field
+#     ~z [MIN]-[MAX]  messages with a size in the range MIN to MAX *)
+#
+#Where EXPR, USER, ID, and SUBJECT are regular expressions. 
+#
+#*) The forms <[MAX], >[MIN], [MIN]- and -[MAX] are allowed, too. 
+# ^ all fields in list
+# ! logical not
+# AND to patterns in a row
+# | logical or
+# () logical grouping
+# Last match wins
+
+# The main index
+color index brightwhite default "~U" # Unread in bold white
+# Unread and To/Cc me in cyan
+color index brightcyan default  "~U (~C jdoe@example1.com | ~C joed@example2.com)"
+color index color8 default      "~R" # Read in gray
+color index black default       "~D" # Deleted in dark gray
+color index red default         "~F" # Flagged in red
+color index yellow default      "~T" # Tagged in yellow
+
+# The current row
+color indicator brightwhite black
+
+# The thread arrow
+color tree color8 default
+
+# Body colors
+color quoted  color8 default
+color quoted1 color8 default
+color quoted2 color8 default
+color quoted3 color8 default
+
+# Only display the headers we care about, and in a sensible order
+ignore *
+unignore from to cc date subject
+unhdr_order *
+hdr_order From: Date: To: Cc: Subject:
+
+# Index format (columns displayed)
+# https://wiki.archlinux.org/index.php/mutt#Index_Format
+# http://www.mutt.org/doc/manual/manual-6.html#index_format
+#set index_format="%4C %Z %{%b %d} %-15.15L (%4l) %s" # default
+set index_format="%Z %{%b %d} %-15.15F (%3M) %s"
+# Do not collapse if there are undread messages
+set collapse_unread=no
+
+# Mailing lists - as far as I can tell, this is useless...
+#lists platform-driver-x86@vger.kernel.org
+
+# When piping tagged lists, do them one at a time. This avoids having to use
+# formail which breaks in weird ways with inline attachments in digest mode.
+set pipe_split=yes
+# Macros for managing patches
+# Type ( followed by the character while viewing the index, e.g. (t
+#macro index (t '<tag-prefix><pipe-entry>~/bin/mutt/mail-to-mbox<return>'  "Dumps tagged patches into ~/incoming/*.mbox"
+macro index (t '<enter-command>unset wait_key<return><tag-prefix><pipe-entry>~/bin/mutt/procmail<return><enter-command>set wait_key<return><shell-escape>ls -ltr ~/incoming/<return>'  "Dumps tagged patches into ~/incoming/*.mbox"
+macro index (g '<shell-escape>~/bin/mutt/git-apply-incoming<return>'  "git am ~/incoming/*.mbox"
+macro index (c '<shell-escape>~/bin/mutt/checkpatch<return>' "Run checkpatch on ~/incoming/*"
+macro index (r '<shell-escape>rm -f ~/incoming/*.mbox; ls -ltr ~/incoming/<return>'  "Nukes all ~/incoming/"
+macro index (l '<shell-escape>ls -ltr ~/incoming/<return>'  "ls -l ~/incoming/"
+
+# Delete old mail from folders upon entry
+folder-hook INBOX/ 'push "<delete-pattern>~r>180d<enter>"'
+folder-hook (Lists\.linux\..*) 'push "<delete-pattern>~r>90d<enter>"'

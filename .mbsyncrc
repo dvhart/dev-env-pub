@@ -1,0 +1,20 @@
+IMAPStore example-remote
+# No Account object, just define IMAPAccount fields directly
+Host imap.example.com
+User jdoe
+Tunnel "env -u SSH_AUTO_SOCK ssh -q -i ~/.ssh/id_rsa_example imap.example.com /usr/libexec/dovecot/imap"
+
+MaildirStore example-local
+Path ~/Mail/example/
+Inbox ~/Mail/example/INBOX
+Flatten .
+
+Channel example
+Master :example-remote:
+Slave :example-local:
+Patterns *
+Create Both
+# See mbsync(1) before enabling Remove
+#Remove Both
+Expunge Both
+SyncState *

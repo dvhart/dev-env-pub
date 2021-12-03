@@ -1,0 +1,12 @@
+# Sample .pwclientrc file for the platform-driver-x86 project,
+# running on patchwork.kernel.org.
+#
+# Just append this file to your existing ~/.pwclientrc
+# If you do not already have a ~/.pwclientrc, then copy this file to
+# ~/.pwclientrc, and uncomment the following two lines:
+[options]
+default=platform-driver-x86
+
+[platform-driver-x86]
+url= https://patchwork.kernel.org/xmlrpc/
+

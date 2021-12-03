@@ -1,0 +1,70 @@
+#!/bin/sh
+
+URL="ssh://projects.osadl.org/SIL2LinuxMP.git"
+REF=$1
+MSG=pull-$REF-`date +%Y-%m-%d-%H-%M-%N`.msg
+
+usage() {
+	echo "usage: $(basename $0) REF"
+}
+
+if [ $# -ne 1 ] || [ -z "$REF" ]; then
+	echo "ERROR: invalid arguments"
+	usage
+	exit 1
+fi
+
+git cat-file -e $REF 2>/dev/null
+if [ $? -ne 0 ]; then
+	echo "$REF is not a git object"
+	exit 1
+fi
+
+REF_TYPE=$(git cat-file -t $REF)
+if [ ! "$REF_TYPE" = "commit" ]; then
+	echo "ERROR: $REF is not a commit (it's a $REF_TYPE)"
+	usage
+	exit 1
+fi
+
+if [ -e $MSG ]; then
+	echo "ERROR: $MSG exists, remove or rename and try again."
+	exit 1
+fi
+
+SUBJECT="Please pull $REF: <TOPIC>"
+
+# Add headers, greeting, and blurb
+(cat << EOM
+From: Darren Hart <darren.hart@intel.com>
+Date: $(date -R)
+To: sil2cm@osadl.org, sil2linuxmp@lists.osadl.org
+Subject: [GIT PULL] $SUBJECT
+
+My $REF branch contains 
+WRITEME
+
+EOM
+) > $MSG
+
+# Add git pull request message
+git request-pull master $URL $1 >> $MSG
+if [ $? -ne 0 ]; then
+	rm $MSG
+	echo "ERROR: request pull failed"
+	exit 1
+fi
+
+# Add message footer
+(cat << EOM
+
+Thanks,
+
+Darren Hart
+Intel Open Source Technology Center
+
+EOM
+) >> $MSG
+
+vim $MSG +3
+echo "Use 'mutt -H $MSG' to send the pull request."

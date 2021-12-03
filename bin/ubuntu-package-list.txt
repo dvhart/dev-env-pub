@@ -1,0 +1,1 @@
+vim isync mutt procmail byobu screen htop hexchat msmtp dconf-editor libssl-dev libelf-dev elfutils numactl numactl libnuma-dev libcap-dev libcap-ng-dev libpfm4-dev libmount-dev libpopt-dev libc6-dev cscope patch git-email bison flex automake autoconf acpica-tools libncurses-dev strace python-ply python3-git pipenv gnupg2 yubikey-personalization-gui

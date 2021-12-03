@@ -1,0 +1,2 @@
+cd ~/source/linux/linux-dev/
+scripts/checkpatch.pl ~/incoming/*
